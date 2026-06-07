@@ -29,6 +29,9 @@ abstract class LaminaDao {
     @Query("UPDATE laminas SET cantidad_repetidas = :cantidad WHERE id = :id")
     abstract suspend fun actualizarRepetidas(id: String, cantidad: Int)
 
+    @Query("UPDATE laminas SET estado = 1 WHERE id = :id")
+    abstract suspend fun marcarComoObtenida(id: String)
+
     @Transaction
     open suspend fun registrarObtenida(id: String, nombreJugador: String) {
         val existente = getLaminaById(id)
@@ -36,6 +39,8 @@ abstract class LaminaDao {
             insertarLamina(Lamina(id = id, nombre_jugador = nombreJugador, estado = 1))
         } else if (existente.estado == 1) {
             actualizarRepetidas(id, existente.cantidad_repetidas + 1)
+        } else {
+            marcarComoObtenida(id)
         }
     }
 
@@ -48,6 +53,8 @@ abstract class LaminaDao {
         val recibida = getLaminaById(idRecibida)
         if (recibida == null) {
             insertarLamina(Lamina(id = idRecibida, nombre_jugador = nombreRecibida, estado = 1))
+        } else if (recibida.estado == 0) {
+            marcarComoObtenida(idRecibida)
         }
     }
 
